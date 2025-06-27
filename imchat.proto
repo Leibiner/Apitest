@@ -1,0 +1,782 @@
+
+//Author : GGX Docs ProtoV2FileConverter
+//Namespace : imchat
+//Description : IM服务端
+//Create Date : 2025-05-08 21:04:47
+
+
+syntax = "proto2";
+
+
+// 登录请求
+// auth.req
+message AuthReq {
+  optional string token = 1;// token
+  optional string language = 2;// 国际化语言标识 zh_CN=中文(默认)、zh_TW=繁体中文、en=英文
+}
+
+// 登录响应
+// auth.resp
+message AuthResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+}
+
+// 登录user认证请求
+// auth.user.req
+message AuthUserReq {
+  optional string token = 1;// token
+  optional int64 userId = 2;// userId
+  optional string language = 3;// 国际化语言标识 zh_CN=中文(默认)、zh_TW=繁体中文、en=英文
+}
+
+// 广播消息会话响应详情
+// broadcast.chat.info
+message BroadcastChatInfo {
+  optional string chatId = 1;// 会话ID
+  optional int32 chatType = 2;// 会话类型(IMMessage.ChatType:1私聊,2群聊)
+}
+
+// 广播消息会话撤回响应详情
+// broadcast.chat.recall.info
+message BroadcastChatRecallInfo {
+  optional string chatId = 1;// 会话ID
+  optional int32 chatType = 2;// 会话类型(IMMessage.ChatType:1私聊,2群聊)
+}
+
+// 聊天会话消息项
+// broadcast.recall.msg.item
+message BroadcastRecallMsgItem {
+  optional int64 chatMsgId = 1;// 具体聊天会话的消息ID
+  optional string chatId = 2;// 会话ID
+}
+
+// 广播消息撤回请求
+// broadcast.recall.req
+message BroadcastRecallReq {
+  optional string broadcastId = 1;// 广播ID
+  optional int64 serverMsgId = 2;// 广播消息ID
+}
+
+// 广播消息撤回响应
+// broadcast.recall.resp
+message BroadcastRecallResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  optional string broadcastId = 4;// 广播ID
+  optional int64 serverMsgId = 5;// 广播消息ID
+  repeated BroadcastRecallMsgItem recallMsgItemList = 6;// 撤回消息列表
+}
+
+// 广播消息会话撤回推送成功通知
+// broadcast.recall.success.push
+message BroadcastRecallSuccessPush {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  optional string broadcastId = 4;// 广播ID
+  optional int64 serverMsgId = 5;// 服务端消息ID
+  optional BroadcastChatRecallInfo broadcastRecallSuccessChat = 6;// 广播发送成功会话
+}
+
+// 广播消息发送请求
+// broadcast.req
+message BroadcastReq {
+  optional string broadcastId = 1;// 广播ID
+  optional string clientMsgId = 2;// 客户端消息ID
+  optional int32 msgType = 3;// 消息类型 -- 0:文本、1:图片、2:短视频、3:短语音、4:位置、5:文件、6:名片、8:群名片、9:群公告、10:提醒@群成员、11:消息撤回、12:聊天记录、25直播分享、1000:系统消息 
+  optional string content = 4;// 消息内容
+}
+
+// 广播消息发送请求响应
+// broadcast.resp
+message BroadcastResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  optional string broadcastId = 4;// 广播ID
+  optional string clientMsgId = 5;// 客户端消息ID
+  optional int64 serverMsgId = 6;// 广播消息ID
+  optional int64 sendTime = 7;// 发送时间戳
+  repeated MsgItem msgItemList = 8;// 消息项列表(多条)
+}
+
+// 广播消息会话推送成功通知
+// broadcast.success.push
+message BroadcastSuccessPush {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  optional string broadcastId = 4;// 广播ID
+  optional string clientMsgId = 5;// 客户端消息ID
+  optional int64 serverMsgId = 6;// 服务端消息ID
+  optional int64 sendTime = 7;// 发送时间戳
+  repeated MsgItem msgItemList = 8;// 消息项列表
+  optional BroadcastChatInfo broadcastSuccessChat = 9;// 广播发送成功会话
+}
+
+// ACK请求项
+// chat.ack.item
+message ChatAckItem {
+  optional string chatId = 1;// 聊天会话ID
+  optional int64 lastAckMsgId = 2;// 最后ack的消息ID
+  optional int64 lastAckTime = 3;// 最后ack的时间
+  optional int32 lastPageSize = 4;// 上次拉取到的消息数目
+}
+
+// 消息ACK请求
+// chat.ack.req
+message ChatAckReq {
+  repeated ChatAckItem ackItems = 1;// ACK消息项列表
+}
+
+// 消息ACK响应
+// chat.ack.resp
+message ChatAckResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  repeated ChatAckItem ackItems = 4;// ACK消息项列表
+  optional int32 lastPageSize = 5;// 上一次拉取离线消息的分页大小
+}
+
+// 聊天消息推送
+// chat.msg.push
+message ChatMsgPush {
+  optional int64 msgId = 1;// 消息ID
+  optional int64 sendTime = 2;// 发送时间戳
+  optional int64 from = 3;// 发送用户ID
+  optional int64 to = 4;// 目标用户
+  optional string chatId = 5;// 会话ID
+  optional int32 msgType = 6;// 消息类型 -- 0:文本、1:图片、2:短视频、3:短语音、4:位置、5:文件、6:个人名片、7:红包、8:群名片、1000:系统消息
+  optional int32 chatType = 7;// 聊天类型 -- 1:私聊、2:群聊
+  optional string content = 8;// 消息内容
+  optional string groupId = 9;// 群组ID
+  optional int32 sysType = 10;// 系统消息子类型 -- 1001: 打招呼、1002: 加入群提醒、1003: 退出群提醒、1004: 撤回消息、1005: 修改群公告、1006: 修改群名称、1007: 踢出群聊、1008: 修改群昵称、1009: 创建群聊、1010: 群转让、1011: 禁言、1012: 解散群、1013: 修改群简介、1014: 添加管理员、1015: 移除管理员、1016: 修改群头像
+  optional string clientMsgId = 11;// 客户端消息ID
+}
+
+// 消息接收者获取请求
+// chat.msg.receivers.req
+message ChatMsgReceiversReq {
+  optional int64 msgId = 1;// 消息ID
+}
+
+// 消息接收者获取响应
+// chat.msg.receivers.resp
+message ChatMsgReceiversResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  repeated int64 receiversIdList = 4;// 消息接收者ID列表
+}
+
+// 消息已读请求
+// chat.read.req
+message ChatReadReq {
+  repeated ReadMsgItem redMsgItems = 1;// 已读消息项列表
+}
+
+// 已读ACK响应
+// chat.read.resp
+message ChatReadResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  repeated ReadMsgItem redMsgItems = 4;// 已读消息项列表
+}
+
+// 聊天消息发送请求
+// chat.req
+message ChatReq {
+  optional int64 to = 1;// 目标用户ID
+  optional string clientMsgId = 2;// 客户端消息ID
+  optional string chatId = 3;// 会话ID
+  optional int32 msgType = 4;// 消息类型 -- 0:文本、1:图片、2:短视频、3:短语音、4:位置、5:文件、6:名片、7:红包、8:群名片、9:群公告、10:提醒@群成员、11:消息撤回、12:聊天记录、25直播分享、1000:系统消息 
+  optional int32 chatType = 5;// 聊天类型 -- 1:私聊、2:群聊
+  optional string content = 6;// 消息内容
+  optional string groupId = 7;// 群组ID  -- 群聊有效
+  optional int32 chatTargetType = 8;// 目标类型(1默认,2指定目标用户)
+}
+
+// 聊天消息发送响应
+// chat.resp
+message ChatResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  optional string clientMsgId = 4;// 客户端消息ID
+  optional int64 serverMsgId = 5;// 服务端消息ID
+  optional string sessionId = 6;// 会话ID
+  optional int64 sendTime = 7;// 发送时间戳
+  repeated MsgItem msgItemList = 8;// 消息项列表(多条)
+}
+
+// 全局消息ACK请求项
+// global.msg.chat.ack.item
+message GlobalMsgChatAckItem {
+  optional string chatId = 1;// 聊天会话ID
+  optional int64 lastAckMsgId = 2;// 最后ack的消息ID
+  optional int64 lastAckTime = 3;// 最后ack的时间
+  optional int32 lastPageSize = 4;// 上次拉取到的消息数目
+}
+
+// 全局消息ACK请求
+// global.msg.chat.ack.req
+message GlobalMsgChatAckReq {
+  repeated GlobalMsgChatAckItem ackItems = 1;// ACK消息项列表
+}
+
+// 全局消息ACK响应
+// global.msg.chat.ack.resp
+message GlobalMsgChatAckResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  repeated GlobalMsgChatAckItem ackItems = 4;// ACK消息项列表
+  optional int32 lastPageSize = 5;// 上一次拉取离线消息的分页大小
+}
+
+// 拉取全局离线消息请求
+// global.msg.pull.offline.req
+message GlobalMsgPullOfflineReq {
+  optional string chatId = 1;// 会话id
+  optional int64 lastMsgId = 2;// 最后ACK的消息ID
+  optional int32 pageSize = 3;// 数量
+}
+
+// 拉取全局离线消息响应
+// global.msg.pull.offline.resp
+message GlobalMsgPullOfflineResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  optional string chatId = 4;// 会话id
+  repeated GlobalMsgPush msgList = 5;// 消息列表
+  optional string lastMsgId = 6;// 上一页最后的消息ID
+}
+
+// 全局消息推送
+// global.msg.push
+message GlobalMsgPush {
+  optional int64 msgId = 1;// 消息ID
+  optional string chatId = 2;// 会话ID
+  optional int64 pushTime = 3;// 发送时间戳
+  optional int32 msgType = 4;// 消息类型(0任务消息,1pc登录状态消息)默认0
+  optional string content = 5;// 消息内容
+}
+
+// 踢下线推送
+// kick.offline.push
+message KickOfflinePush {
+  optional string message = 1;// 提示信息
+}
+
+// 退出登录请求
+// logout.req
+message LogoutReq {
+}
+
+// 退出登录响应
+// logout.resp
+message LogoutResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+}
+
+// 会议ACK请求项
+// meeting.chat.ack.item
+message MeetingChatAckItem {
+  optional string chatId = 1;// 聊天会话ID
+  optional int64 lastAckMsgId = 2;// 最后ack的消息ID
+  optional int64 lastAckTime = 3;// 最后ack的时间
+  optional int32 lastPageSize = 4;// 上次拉取到的消息数目
+}
+
+// 会议消息ACK请求
+// meeting.chat.ack.req
+message MeetingChatAckReq {
+  repeated MeetingChatAckItem ackItems = 1;// ACK消息项列表
+}
+
+// 会议消息ACK响应
+// meeting.chat.ack.resp
+message MeetingChatAckResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  repeated MeetingChatAckItem ackItems = 4;// ACK消息项列表
+  optional int32 lastPageSize = 5;// 上一次拉取离线消息的分页大小
+}
+
+// 会议聊天消息推送
+// meeting.chat.msg.push
+message MeetingChatMsgPush {
+  optional int64 msgId = 1;// 消息ID
+  optional int64 sendTime = 2;// 发送时间戳
+  optional int64 from = 3;// 发送用户ID
+  optional int64 to = 4;// 目标用户
+  optional string chatId = 5;// 会话ID
+  optional int32 msgType = 6;// 消息类型 -- 0:文本、1:图片、2:短视频、3:短语音、4:位置、5:文件、6:个人名片、7:红包、8:群名片、1000:系统消息
+  optional int32 chatType = 7;// 聊天类型 -- 1:私聊、2:群聊
+  optional string content = 8;// 消息内容
+  optional string groupId = 9;// 群组ID
+  optional int32 sysType = 10;// 系统消息子类型 -- 1001: 打招呼、1002: 加入群提醒、1003: 退出群提醒、1004: 撤回消息、1005: 修改群公告、1006: 修改群名称、1007: 踢出群聊、1008: 修改群昵称、1009: 创建群聊、1010: 群转让、1011: 禁言、1012: 解散群、1013: 修改群简介、1014: 添加管理员、1015: 移除管理员、1016: 修改群头像
+  optional string clientMsgId = 11;// 客户端消息ID
+}
+
+// 会议聊天消息发送请求
+// meeting.chat.req
+message MeetingChatReq {
+  optional string clientMsgId = 1;// 客户端消息ID
+  optional string meetingId = 2;// 会议ID
+  optional int32 msgType = 3;// 消息类型 -- 0:文本、1:图片、2:短视频、3:短语音、4:位置、5:文件、6:名片、8:群名片、9:群公告、10:提醒@群成员、11:消息撤回、12:聊天记录、1000:系统消息 
+  optional string content = 4;// 消息内容
+}
+
+// 会议聊天发送响应
+// meeting.chat.resp
+message MeetingChatResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  optional string clientMsgId = 4;// 客户端消息ID
+  optional int64 serverMsgId = 5;// 服务端消息ID
+  optional string sessionId = 6;// 会话ID
+  optional int64 sendTime = 7;// 发送时间戳
+}
+
+// 会议通知推送
+// meeting.notice.push
+message MeetingNoticePush {
+  optional int32 noticeType = 1;// 通知类型
+  optional string content = 2;// 内容通知 json
+}
+
+// 会议通知发送请求
+// meeting.notice.req
+message MeetingNoticeReq {
+  repeated int64 toUserIds = 1;// 目标用户ID
+  optional string content = 2;// 内容
+  optional int32 noticeType = 3;// 通知消息推送类型 1002:用户支付状态更新、1006:用户进行了截屏
+}
+
+// 通知发送响应
+// meeting.notice.resp
+message MeetingNoticeResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+}
+
+// 会议拉取离线消息请求-new
+// meeting.pull.offline.msg.req
+message MeetingPullOfflineMsgReq {
+  optional string chatId = 1;// 会话ID
+  optional int64 lastAckTime = 2;// 最后ACK的消息时间
+  optional int64 lastMsgId = 3;// 最后ACK的消息ID
+  optional int32 pageSize = 4;// 数量
+  optional int32 orderDirection = 5;// 排序方向,1、升序(默认)，-1、降序
+  optional int64 descMinMsgId = 6;// 降序最小可拉取的消息ID
+}
+
+// 会议拉取离线消息响应-new
+// meeting.pull.offline.msg.resp
+message MeetingPullOfflineMsgResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  optional string chatId = 4;// 聊天会话id
+  repeated MeetingChatMsgPush msgList = 5;// 消息列表
+  optional int32 orderDirection = 6;// 排序方向,1、升序，-1、降序
+  optional int64 lastMsgId = 7;// 上一页最后的消息ID
+}
+
+// 会议撤回消息请求
+// meeting.recall.msg.req
+message MeetingRecallMsgReq {
+  optional int64 msgId = 1;// 消息ID
+  optional string chatId = 2;// 会话ID
+  optional string groupId = 3;// 群组ID
+}
+
+// 会议撤回消息响应
+// meeting.recall.msg.resp
+message MeetingRecallMsgResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+}
+
+// 消息项
+// msg.item
+message MsgItem {
+  optional string clientMsgId = 1;// 客户端消息ID
+  optional int64 serverMsgId = 2;// 服务端消息ID
+}
+
+// 通知ACK请求
+// notice.ack.req
+message NoticeAckReq {
+  repeated string noticeIdList = 1;// 通知ID列表
+}
+
+// 通知ACK响应
+// notice.ack.resp
+message NoticeAckResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  repeated string noticeIdList = 4;// 通知ID列表
+}
+
+// 通知推送push
+// notice.push
+message NoticePush {
+  optional int32 noticeType = 1;// 通知类型 1001:新的好友请求、1002:支付状态更新、1003:新的加入群聊申请通知、1004:新的加入社群群聊申请通知、1005:默认社群通知推送、1006:用户进行了截屏、1007:好友已添加推送、1008:阅后即焚通知、1009:APP版本更新通知
+  optional string content = 2;// 内容通知 json
+  optional string noticeId = 3;// 通知ID
+}
+
+// 通知发送请求
+// notice.req
+message NoticeReq {
+  repeated int64 toUserIds = 1;// 目标用户ID
+  optional string chatId = 2;// 聊天会话ID
+  optional string groupId = 3;// 目标群ID
+  optional string content = 4;// 内容
+  optional int32 noticeType = 5;// 通知消息推送类型 1002:用户支付状态更新、1006:用户进行了截屏
+}
+
+// 通知发送响应
+// notice.resp
+message NoticeResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+}
+
+// 离线消息检查模型
+// offline.chat.check.model
+message OfflineChatCheckModel {
+  optional string chatId = 1;// 聊天会话ID
+  optional int64 lastAckTime = 2;// 最后发送时间
+  optional int64 lastAckMsgId = 3;// 最后ACK的消息ID
+  optional int32 unreadMsgNum = 4;// 未读的消息数量
+}
+
+// 离线消息检查请求
+// offline.chat.check.req
+message OfflineChatCheckReq {
+  optional string lastChatId = 1;// 最后一页的chatId
+  optional int32 pageSize = 2;// 数量
+}
+
+// 离线消息检查响应
+// offline.chat.check.resp
+message OfflineChatCheckResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  repeated OfflineChatCheckModel chatSessionList = 4;// 离线消息会话集合列表
+}
+
+// 离线聊天会话模型
+// offline.chat.model
+message OfflineChatModel {
+  optional int32 chatType = 1;// 聊天类型 -- 1:私聊、2:群聊
+  optional int64 userId = 2;// 用户ID
+  optional string groupId = 3;// 群组ID
+}
+
+// 用户在线状态推送
+// online.status.push
+message OnlineStatusPush {
+  optional bool online = 1;// 是否在线
+  optional int64 userId = 2;// 用户ID
+}
+
+// 心跳Ping请求
+// ping
+message Ping {
+}
+
+// 心跳Pong响应
+// pong
+message Pong {
+}
+
+// 拉取聊天消息请求
+// pull.msg.req
+message PullMsgReq {
+  optional string chatId = 1;// 会话ID
+  optional int64 lastMsgId = 2;// 上一页最后一条消息ID，第一页不传
+  optional int32 pageSize = 3;// 数量
+  optional int32 sortOrder = 4;// 排序方式
+}
+
+// 拉取聊天消息响应
+// pull.msg.resp
+message PullMsgResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  optional string chatId = 4;// 聊天会话id
+  repeated ChatMsgPush msgList = 5;// 消息列表
+}
+
+// 拉取离线消息请求-new
+// pull.offline.msg.req
+message PullOfflineMsgReq {
+  optional string chatId = 1;// 会话ID
+  optional int64 lastAckTime = 2;// 最后ACK的消息时间
+  optional int64 lastMsgId = 3;// 最后ACK的消息ID
+  optional int32 pageSize = 4;// 数量
+  optional int32 orderDirection = 5;// 排序方向,1、升序(默认)，-1、降序
+  optional int64 descMinMsgId = 6;// 降序最小可拉取的消息ID
+}
+
+// 拉取离线消息响应-new
+// pull.offline.msg.resp
+message PullOfflineMsgResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  optional string chatId = 4;// 聊天会话id
+  repeated ChatMsgPush msgList = 5;// 消息列表
+  optional int32 orderDirection = 6;// 排序方向,1、升序，-1、降序
+  optional int64 lastMsgId = 7;// 上一页最后的消息ID
+}
+
+// 拉取离线通知请求
+// pull.offline.notice.req
+message PullOfflineNoticeReq {
+  optional int32 pageSize = 1;// 分页大小
+}
+
+// 拉取离线通知响应
+// pull.offline.notice.resp
+message PullOfflineNoticeResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  repeated NoticePush noticeList = 4;// 通知列表
+}
+
+// 已读消息请求项
+// read.msg.item
+message ReadMsgItem {
+  optional int64 msgId = 1;// 消息ID
+  optional int64 fromUserId = 2;// 发送消息的用户ID
+  optional string groupId = 3;// 群ID
+  optional string chatId = 4;// 聊天会话ID
+  optional bool burnAfterReading = 5;// 是否阅后即焚消息
+}
+
+// 撤回消息请求
+// recall.msg.req
+message RecallMsgReq {
+  optional int64 msgId = 1;// 消息ID
+  optional string chatId = 2;// 会话ID
+  optional string groupId = 3;// 群组ID
+}
+
+// 撤回消息响应
+// recall.msg.resp
+message RecallMsgResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+}
+
+// 会话密钥传输请求
+// secret.key.req
+message SecretKeyReq {
+  optional string secretKey = 1;// rsa加密后的secretKey
+}
+
+// 会话密钥传输响应
+// secret.key.resp
+message SecretKeyResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+}
+
+// 临时聊天ACK请求项
+// short.chat.ack.item
+message ShortChatAckItem {
+  optional string shortChatId = 1;// 临时聊天会话ID
+  optional int64 lastAckMsgId = 2;// 最后ack的消息ID
+  optional int32 lastPageSize = 3;// 上一次获取离线消息的条数
+}
+
+// 临时会话消息ACK请求
+// short.chat.ack.req
+message ShortChatAckReq {
+  repeated ShortChatAckItem ackItems = 1;// ACK消息项列表
+  optional bool offline = 2;// 是否离线消息ack
+}
+
+// 临时聊天消息ACK响应
+// short.chat.ack.resp
+message ShortChatAckResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  repeated ShortChatAckItem ackItems = 4;// ACK消息项列表
+}
+
+// 临时聊天消息推送
+// short.chat.msg.push
+message ShortChatMsgPush {
+  optional int64 msgId = 1;// 消息ID
+  optional int64 sendTime = 2;// 发送时间戳
+  optional int64 from = 3;// 发送用户ID
+  optional string shortChatId = 4;// 会话ID
+  optional int32 msgType = 5;// 消息类型 -- 0:文本、1:图片、2:短视频、3:短语音、4:位置、5:文件、6:个人名片、7:红包、8:群名片、1000:系统消息
+  optional string content = 6;// 消息内容
+  optional string clientMsgId = 7;// 客户端消息ID
+  optional int32 sysType = 8;// 系统消息子类型 -- 1001: 打招呼、1002: 加入群提醒、1003: 退出群提醒、1004: 撤回消息、1005: 修改群公告、1006: 修改群名称、1007: 踢出群聊、1008: 修改群昵称、1009: 创建群聊、1010: 群转让、1011: 禁言、1012: 解散群、1013: 修改群简介、1014: 添加管理员、1015: 移除管理员、1016: 修改群头像
+}
+
+// 已读消息请求项
+// short.chat.read.msg.item
+message ShortChatReadMsgItem {
+  optional int64 serverMsgId = 1;// 服务端消息ID
+  optional string shortChatId = 2;// 聊天会话ID
+  optional bool burnAfterReading = 3;// 是否阅后即焚消息
+}
+
+// 临时会话消息已读请求
+// short.chat.read.req
+message ShortChatReadReq {
+  repeated ShortChatReadMsgItem redMsgItems = 1;// 已读消息项列表
+}
+
+// 临时会话消息已读响应
+// short.chat.read.resp
+message ShortChatReadResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  repeated ShortChatReadMsgItem redMsgItems = 4;// 已读消息项列表
+}
+
+// 临时聊天消息发送请求
+// short.chat.req
+message ShortChatReq {
+  optional string clientMsgId = 1;// 客户端消息ID
+  optional string shortChatId = 2;// 临时会话ID
+  optional int32 msgType = 3;// 消息类型 -- 0:文本、1:图片、2:短视频、3:短语音、4:位置、5:文件、6:名片、7:红包、8:群名片、9:群公告、10:提醒@群成员、11:消息撤回、12:聊天记录、25直播分享、1000:系统消息 
+  optional string content = 4;// 消息内容
+}
+
+// 临时聊天消息发送响应
+// short.chat.resp
+message ShortChatResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  optional string clientMsgId = 4;// 客户端消息ID
+  optional int64 serverMsgId = 5;// 服务端消息ID
+  optional string shortChatId = 6;// 临时会话ID
+  optional int64 sendTime = 7;// 发送时间戳
+}
+
+// 临时聊天离线消息检查模型
+// short.offline.chat.check.item
+message ShortOfflineChatCheckItem {
+  optional string shortChatId = 1;// 临时聊天会话ID
+  optional int64 lastAckMsgId = 2;// 最后ACK的消息ID
+  optional int64 unreadMsgNum = 3;// 未读的消息数量
+}
+
+// 临时聊天离线消息检查请求
+// short.offline.chat.check.req
+message ShortOfflineChatCheckReq {
+}
+
+// 临时聊天离线消息检查响应
+// short.offline.chat.check.resp
+message ShortOfflineChatCheckResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  repeated ShortOfflineChatCheckItem chatSessionList = 4;// 离线消息会话集合列表
+}
+
+// 临时会话拉取离线消息请求-new
+// short.pull.offline.msg.req
+message ShortPullOfflineMsgReq {
+  optional string shortChatId = 1;// 会话ID
+  optional int64 lastMsgId = 2;// 最后ACK的消息ID
+  optional int32 limit = 3;// 数量
+}
+
+// 临时会话拉取离线消息响应-new
+// short.pull.offline.msg.resp
+message ShortPullOfflineMsgResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  optional string shortChatId = 4;// 会话ID
+  repeated ShortChatMsgPush msgList = 5;// 消息列表
+}
+
+// 临时会话撤回消息请求
+// short.recall.msg.req
+message ShortRecallMsgReq {
+  optional int64 msgId = 1;// 消息ID
+  optional string shortChatId = 2;// 聊天会话ID
+}
+
+// 临时会话撤回消息响应
+// short.recall.msg.resp
+message ShortRecallMsgResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+  optional int64 msgId = 4;// 消息ID
+  optional string shortChatId = 5;// 聊天会话ID
+}
+
+// 用户设置更新请求
+// update.user.settings.req
+message UpdateUserSettingsReq {
+  optional string settings = 1;// 配置更新请求json
+}
+
+// 用户设置更新响应
+// update.user.settings.resp
+message UpdateUserSettingsResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+}
+
+// 用户转账状态更新请求
+// user.transfer.status.update.req
+message UserTransferStatusUpdateReq {
+  optional int64 toUserId = 1;// 转账目标用户ID
+  optional int64 fromUserId = 2;// 来自用户ID
+  optional string fromUserAvatar = 3;// 来自用户头像
+  optional string fromUserNickname = 4;// 来自用户昵称
+  optional string payId = 5;// 本次支付随机ID
+  optional string currencyId = 6;// 币种ID
+  optional string amount = 7;// 金额
+  optional int32 payStatus = 8;// 支付状态 1:支付中、2:已支付、3:支付失败
+  optional string currencyName = 9;// 币种名称
+}
+
+// 用户转账状态更新响应
+// user.transfer.status.update.resp
+message UserTransferStatusUpdateResp {
+  optional bool respSuccess = 1;// 是否成功
+  optional string respCode = 2;// 响应码
+  optional string respMsg = 3;// 响应消息内容
+}
+
